@@ -5,60 +5,60 @@
 
 import Foundation
 
-
 class MobileBackendApi  {
-    
+
     static let sharedInstance = MobileBackendApi()
     let awsCognitoCredentialsProvider: AWSCognitoCredentialsProvider
     var cognitoId:String?
     
     init() {
         //Initialize the identity provider
-        self.awsCognitoCredentialsProvider = AWSCognitoCredentialsProvider.credentialsWithRegionType(CognitoRegionType, accountId: AWSAccountId, identityPoolId: CognitoIdentityPoolId, unauthRoleArn: CognitoUnauthenticatedRoleArn, authRoleArn: CognitoAuthenticatedRoleArn)
+        self.awsCognitoCredentialsProvider = AWSCognitoCredentialsProvider.credentials(with: CognitoRegionType, accountId: AWSAccountId, identityPoolId: CognitoIdentityPoolId, unauthRoleArn: CognitoUnauthenticatedRoleArn, authRoleArn: CognitoAuthenticatedRoleArn)
     }
     
     func requestCognitoIdentity() {
-        awsCognitoCredentialsProvider.getIdentityId().continueWithBlock() { (task) -> AnyObject! in
-            if let error = task.error {
-                print("Error Requesting Unauthenticated user identity: \(error.userInfo)")
+        awsCognitoCredentialsProvider.getIdentityId().continue({ (task) -> AnyObject! in
+            if let error = task?.error {
+//                print("Error Requesting Unauthenticated user identity: \(error.userInfo)")
                 self.cognitoId = nil
             } else {
                 self.cognitoId = self.awsCognitoCredentialsProvider.identityId
             }
             return nil
-        }
+        })
     }
     
     func configureS3TransferManager() {
         let configuration = AWSServiceConfiguration(region: DefaultServiceRegionType, credentialsProvider: self.awsCognitoCredentialsProvider)
-        AWSServiceManager.defaultServiceManager().defaultServiceConfiguration = configuration
+        AWSServiceManager.default().defaultServiceConfiguration = configuration
         
-        AWSS3TransferManager.registerS3TransferManagerWithConfiguration(configuration, forKey: "USEast1AWSTransferManagerClient")
+        AWSS3TransferManager.register(with: configuration, forKey: "USEast1AWSTransferManagerClient")
     }
     
     func configureNoteApi() {
         let configuration = AWSServiceConfiguration(region: DefaultServiceRegionType, credentialsProvider: self.awsCognitoCredentialsProvider)
-        AWSServiceManager.defaultServiceManager().defaultServiceConfiguration = configuration
+        AWSServiceManager.default().defaultServiceConfiguration = configuration
         
-        APINotesApiClient.registerClientWithConfiguration(configuration, forKey: "USEast1NoteAPIManagerClient", withUrl: APIEndpointUrl)
-        APINotesApiClient(forKey: "USEast1NoteAPIManagerClient").APIKey = APIGatewayKey
+        APINotesApiClient.register(with: configuration, forKey: "USEast1NoteAPIManagerClient", withUrl: APIEndpointUrl)
+        APINotesApiClient(forKey: "USEast1NoteAPIManagerClient").apiKey = APIGatewayKey
     }
     
-    func postNote(headline: String, text: String) {
+    func postNote(_ headline: String, text: String) {
         let noteRequest = APICreateNoteRequest()
-        noteRequest.headline = headline
-        noteRequest.text = text
-        noteRequest.noteId = NSUUID().UUIDString
+        noteRequest?.headline = headline
+        noteRequest?.text = text
+        noteRequest?.noteId = UUID().uuidString
         
         let noteApiClient = APINotesApiClient(forKey: "USEast1NoteAPIManagerClient")
-        noteApiClient.notesPost(noteRequest).continueWithBlock { (task) -> AnyObject! in
-            if let error = task.error {
+        noteApiClient?.notesPost(noteRequest).continue ({ (task) -> AnyObject! in
+            
+            if let error = task?.error {
                 print("Failed creating note: [\(error)]")
             }
-            if let exception = task.exception {
+            if let exception = task?.exception {
                 print("Failed creating note: [\(exception)]")
             }
-            if let noteResponse = task.result as? APICreateNoteResponse {
+            if let noteResponse = task?.result as? APICreateNoteResponse {
                 if((noteResponse.success) != nil) {
                     print("Saved note successfully")
                 }else {
@@ -66,37 +66,37 @@ class MobileBackendApi  {
                 }
             }
             return task
-        }
+        })
     }
     
-    func uploadImageToS3(localFilePath: String, localFileName: String) {
+    func uploadImageToS3(_ localFilePath: String, localFileName: String) {
         let uploadRequest:AWSS3TransferManagerUploadRequest = AWSS3TransferManagerUploadRequest()
         uploadRequest.bucket = S3BucketName
-        uploadRequest.ACL = AWSS3ObjectCannedACL.PublicRead
+        uploadRequest.acl = AWSS3ObjectCannedACL.publicRead
         uploadRequest.contentType = "image/png"
-        uploadRequest.body = NSURL(fileURLWithPath: localFilePath)
+        uploadRequest.body = URL(fileURLWithPath: localFilePath)
         uploadRequest.key = localFileName
         
-        let s3TransferManager = AWSS3TransferManager.S3TransferManagerForKey("USEast1AWSTransferManagerClient")
+        let s3TransferManager = AWSS3TransferManager.s3TransferManager(forKey: "USEast1AWSTransferManagerClient")
         
-        s3TransferManager.upload(uploadRequest).continueWithBlock { (task) -> AnyObject! in
-            if let error = task.error {
-                if error.domain == AWSS3TransferManagerErrorDomain as String {
+        s3TransferManager?.upload(uploadRequest).continue({ (task) -> AnyObject! in
+            if let error = task?.error {
+                if error._domain == AWSS3TransferManagerErrorDomain as String {
                     print("upload() failed: [\(error)]")
                 } else {
                     print("upload() failed: [\(error)]")
                 }
             }
             
-            if let exception = task.exception {
+            if let exception = task?.exception {
                 print("upload() failed: [\(exception)]")
             }
             
-            if task.result != nil {
+            if task?.result != nil {
                 print("Uploaded local file to S3: [\(localFileName)]")
             }
             return nil
-        }
+        })
     }
     
 }

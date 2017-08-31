@@ -18,6 +18,10 @@
 	<string>1.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>扫码或者上传图片需要此权限</string>
+	<key>NSCameraUsageDescription</key>
+	<string>扫码或者上传图片需要此权限</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -38,27 +42,27 @@
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-      <key>NSExceptionDomains</key>
-      <dict>
-            <key>amazonaws.com</key>
-            <dict>
-                  <key>NSThirdPartyExceptionMinimumTLSVersion</key>
-                  <string>TLSv1.0</string>
-                  <key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
-                  <false/>
-                  <key>NSIncludesSubdomains</key>
-                  <true/>
-            </dict>
-            <key>amazonaws.com.cn</key>
-            <dict>
-                  <key>NSThirdPartyExceptionMinimumTLSVersion</key>
-                  <string>TLSv1.0</string>
-                  <key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
-                  <false/>
-                  <key>NSIncludesSubdomains</key>
-                  <true/>
-            </dict>
-      </dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>amazonaws.com</key>
+			<dict>
+				<key>NSThirdPartyExceptionMinimumTLSVersion</key>
+				<string>TLSv1.0</string>
+				<key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
+				<false/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+			<key>amazonaws.com.cn</key>
+			<dict>
+				<key>NSThirdPartyExceptionMinimumTLSVersion</key>
+				<string>TLSv1.0</string>
+				<key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
+				<false/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
 </dict>
 </plist>
